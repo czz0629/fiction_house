@@ -1,0 +1,775 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="App Store 地区切换工具。点击地区名称，直接打开对应国家或地区的 App Store 首页。">
+  <meta name="theme-color" content="#f5f5f7">
+  <meta name="format-detection" content="telephone=no">
+  <title>MStars.ai</title>
+  <style>
+    * { box-sizing: border-box; }
+
+    :root {
+      --bg: #f5f5f7;
+      --surface: #ffffff;
+      --surface-soft: #fbfbfd;
+      --ink: #1d1d1f;
+      --muted: #6e6e73;
+      --line: #d2d2d7;
+      --blue: #0071e3;
+      --blue-soft: rgba(0, 113, 227, 0.12);
+      --shadow: 0 18px 40px rgba(0, 0, 0, 0.06);
+      --hero-shadow: 0 24px 56px rgba(0, 0, 0, 0.08);
+      --radius-xl: 32px;
+      --radius-lg: 24px;
+      --radius-md: 18px;
+    }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", "PingFang SC", sans-serif;
+      background: linear-gradient(180deg, #fbfbfd 0%, var(--bg) 100%);
+      color: var(--ink);
+    }
+
+    .page {
+      width: min(940px, calc(100% - 18px));
+      margin: 0 auto;
+      padding: 10px 0 40px;
+    }
+
+    .top-stack {
+      display: grid;
+      gap: 8px;
+    }
+
+    .brand-banner {
+      display: block;
+      color: inherit;
+      padding: 2px 2px 8px;
+    }
+
+    .brand-main {
+      flex: 1 1 auto;
+      min-width: 0;
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .brand-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 0 2px 6px;
+    }
+
+    .brand-name {
+      font-size: 17px;
+      font-weight: 600;
+      letter-spacing: 0;
+      white-space: nowrap;
+    }
+
+    .brand-copy {
+      margin: 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+      min-width: 0;
+    }
+
+    .language-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 2px;
+      padding: 2px;
+      border-radius: 999px;
+      border: 1px solid rgba(210, 210, 215, 0.72);
+      background: rgba(255, 255, 255, 0.78);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+      flex: 0 0 auto;
+    }
+
+    .lang-option {
+      border: 0;
+      border-radius: 999px;
+      padding: 0 10px;
+      background: transparent;
+      color: var(--muted);
+      font: inherit;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      min-width: 28px;
+      height: 26px;
+    }
+
+    .lang-option.is-active {
+      background: var(--ink);
+      color: #ffffff;
+      box-shadow: 0 6px 14px rgba(29, 29, 31, 0.16);
+    }
+
+    .lang-option:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 3px var(--blue-soft);
+    }
+
+    .search-shell {
+      background: transparent;
+      border: 0;
+      box-shadow: none;
+      padding: 0;
+    }
+
+    .search-wrap {
+      max-width: none;
+      margin: 0;
+      position: relative;
+    }
+
+    .search-wrap::before {
+      content: "";
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      width: 14px;
+      height: 14px;
+      transform: translateY(-50%);
+      background: no-repeat center / contain url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none'%3E%3Ccircle cx='9' cy='9' r='6.5' stroke='%2386868b' stroke-width='1.5'/%3E%3Cpath d='M13.8 13.8L18 18' stroke='%2386868b' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
+      opacity: 0.75;
+      pointer-events: none;
+    }
+
+    .search {
+      width: 100%;
+      border: 1px solid rgba(210, 210, 215, 0.92);
+      border-radius: 16px;
+      padding: 0 16px 0 40px;
+      height: 50px;
+      font: inherit;
+      color: var(--ink);
+      background: rgba(255, 255, 255, 0.94);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+    }
+
+    .search::placeholder {
+      color: #8d8d92;
+    }
+
+    .search:focus {
+      outline: none;
+      border-color: rgba(0, 113, 227, 0.3);
+      box-shadow: 0 0 0 3px var(--blue-soft);
+    }
+
+    .content {
+      margin-top: 14px;
+      background: rgba(255, 255, 255, 0.76);
+      border: 1px solid rgba(210, 210, 215, 0.8);
+      border-radius: 32px;
+      padding: 22px 16px 18px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(12px);
+    }
+
+    .section {
+      margin-top: 20px;
+    }
+
+    .section:first-of-type {
+      margin-top: 0;
+    }
+
+    .section-title {
+      margin: 0 0 12px;
+      padding: 0 4px;
+      font-size: 12px;
+      color: #86868b;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .region-link {
+      display: block;
+      text-decoration: none;
+      text-align: center;
+      padding: 13px 10px;
+      border-radius: 18px;
+      background: var(--surface);
+      border: 1px solid rgba(210, 210, 215, 0.88);
+      color: var(--ink);
+      font-weight: 600;
+      font-size: 14px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+      transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease, background 0.16s ease;
+    }
+
+    .region-link:hover {
+      transform: translateY(-1px);
+      background: #ffffff;
+      border-color: rgba(0, 113, 227, 0.14);
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.05);
+    }
+
+    .empty {
+      display: none;
+      margin-top: 16px;
+      padding: 16px;
+      border-radius: 22px;
+      background: var(--surface-soft);
+      border: 1px dashed rgba(210, 210, 215, 0.92);
+      text-align: center;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    @media (min-width: 820px) {
+      .grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 640px) {
+      .page {
+        width: min(100% - 14px, 100%);
+        padding-top: 6px;
+      }
+
+      .brand-banner {
+        padding-bottom: 6px;
+      }
+
+      .brand-row {
+        align-items: center;
+        padding-bottom: 8px;
+      }
+
+      .brand-main {
+        gap: 6px;
+        flex-wrap: wrap;
+      }
+
+      .brand-name {
+        font-size: 15px;
+      }
+
+      .brand-copy {
+        font-size: 11px;
+      }
+
+      .lang-option {
+        padding: 0 9px;
+        min-width: 26px;
+        height: 24px;
+      }
+
+      .search {
+        height: 46px;
+        border-radius: 15px;
+        padding-left: 38px;
+      }
+
+      .content {
+        border-radius: 26px;
+        padding: 18px 12px 14px;
+      }
+
+      .grid {
+        gap: 8px;
+      }
+
+      .region-link {
+        padding: 12px 8px;
+        font-size: 13px;
+        border-radius: 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="top-stack">
+      <div class="brand-banner">
+        <div class="brand-row">
+          <a class="brand-main" href="https://www.mstars.ai/" target="_blank" rel="noopener noreferrer">
+            <div class="brand-name">MStars.ai</div>
+            <div class="brand-copy" data-i18n="brandCopy">Apple 广告、DSP、KOL 与 GEO 工具。</div>
+          </a>
+          <div class="language-toggle" aria-label="语言切换">
+            <button class="lang-option is-active" type="button" data-lang-option="zh" aria-pressed="true">中</button>
+            <button class="lang-option" type="button" data-lang-option="en" aria-pressed="false">EN</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="search-shell">
+        <div class="search-wrap">
+          <input class="search" id="searchInput" type="text" data-i18n-placeholder="searchPlaceholder" placeholder="搜索国家、地区或代码，例如 日本、Hong Kong、JP、HK">
+        </div>
+      </div>
+    </section>
+
+    <section class="content">
+      <div id="sections"></div>
+      <div class="empty" id="emptyState" data-i18n="emptyState">没有找到匹配地区。</div>
+    </section>
+  </main>
+
+  <script>
+    const sectionData = [
+      {
+        title: "热门地区",
+        items: [
+          ["中国", "CN"], ["美国", "US"], ["日本", "JP"], ["韩国", "KR"],
+          ["中国台湾", "TW"], ["中国香港特别行政区", "HK"], ["新加坡", "SG"], ["英国", "GB"],
+          ["德国", "DE"], ["法国", "FR"], ["加拿大", "CA"], ["澳大利亚", "AU"]
+        ]
+      },
+      {
+        title: "亚洲与中东",
+        items: [
+          ["阿拉伯联合酋长国", "AE"], ["亚美尼亚", "AM"], ["阿塞拜疆", "AZ"], ["孟加拉国", "BD"],
+          ["巴林", "BH"], ["文莱", "BN"], ["不丹", "BT"], ["中国", "CN"],
+          ["塞浦路斯", "CY"], ["格鲁吉亚", "GE"], ["中国香港特别行政区", "HK"], ["印度尼西亚", "ID"],
+          ["以色列", "IL"], ["印度", "IN"], ["伊拉克", "IQ"], ["日本", "JP"],
+          ["约旦", "JO"], ["吉尔吉斯斯坦", "KG"], ["柬埔寨", "KH"], ["韩国", "KR"],
+          ["科威特", "KW"], ["哈萨克斯坦", "KZ"], ["老挝", "LA"], ["黎巴嫩", "LB"],
+          ["斯里兰卡", "LK"], ["缅甸", "MM"], ["蒙古", "MN"], ["中国澳门特别行政区", "MO"],
+          ["马尔代夫", "MV"], ["马来西亚", "MY"], ["尼泊尔", "NP"], ["阿曼", "OM"],
+          ["菲律宾", "PH"], ["巴基斯坦", "PK"], ["卡塔尔", "QA"], ["沙特阿拉伯", "SA"],
+          ["新加坡", "SG"], ["泰国", "TH"], ["塔吉克斯坦", "TJ"], ["土库曼斯坦", "TM"],
+          ["土耳其", "TR"], ["中国台湾", "TW"], ["乌兹别克斯坦", "UZ"], ["越南", "VN"],
+          ["也门", "YE"]
+        ]
+      },
+      {
+        title: "欧洲",
+        items: [
+          ["阿尔巴尼亚", "AL"], ["奥地利", "AT"], ["比利时", "BE"], ["保加利亚", "BG"],
+          ["白俄罗斯", "BY"], ["瑞士", "CH"], ["捷克", "CZ"], ["德国", "DE"],
+          ["丹麦", "DK"], ["爱沙尼亚", "EE"], ["西班牙", "ES"], ["芬兰", "FI"],
+          ["法国", "FR"], ["英国", "GB"], ["希腊", "GR"], ["克罗地亚", "HR"],
+          ["匈牙利", "HU"], ["爱尔兰", "IE"], ["冰岛", "IS"], ["意大利", "IT"],
+          ["列支敦士登", "LI"], ["立陶宛", "LT"], ["卢森堡", "LU"], ["拉脱维亚", "LV"],
+          ["摩纳哥", "MC"], ["摩尔多瓦", "MD"], ["黑山", "ME"], ["北马其顿", "MK"],
+          ["马耳他", "MT"], ["荷兰", "NL"], ["挪威", "NO"], ["波兰", "PL"],
+          ["葡萄牙", "PT"], ["罗马尼亚", "RO"], ["塞尔维亚", "RS"], ["俄罗斯", "RU"],
+          ["瑞典", "SE"], ["斯洛文尼亚", "SI"], ["斯洛伐克", "SK"], ["乌克兰", "UA"],
+          ["科索沃", "XK"]
+        ]
+      },
+      {
+        title: "非洲",
+        items: [
+          ["安哥拉", "AO"], ["布基纳法索", "BF"], ["贝宁", "BJ"], ["博茨瓦纳", "BW"],
+          ["刚果（金）", "CD"], ["中非共和国", "CF"], ["刚果（布）", "CG"], ["科特迪瓦", "CI"],
+          ["喀麦隆", "CM"], ["佛得角", "CV"], ["阿尔及利亚", "DZ"], ["埃及", "EG"],
+          ["埃塞俄比亚", "ET"], ["加蓬", "GA"], ["加纳", "GH"], ["冈比亚", "GM"],
+          ["几内亚", "GN"], ["几内亚比绍", "GW"], ["肯尼亚", "KE"], ["利比里亚", "LR"],
+          ["利比亚", "LY"], ["摩洛哥", "MA"], ["马达加斯加", "MG"], ["马里", "ML"],
+          ["毛里塔尼亚", "MR"], ["毛里求斯", "MU"], ["马拉维", "MW"], ["莫桑比克", "MZ"],
+          ["纳米比亚", "NA"], ["尼日尔", "NE"], ["尼日利亚", "NG"], ["卢旺达", "RW"],
+          ["塞舌尔", "SC"], ["塞拉利昂", "SL"], ["塞内加尔", "SN"], ["圣多美和普林西比", "ST"],
+          ["斯威士兰", "SZ"], ["乍得", "TD"], ["突尼斯", "TN"], ["坦桑尼亚", "TZ"],
+          ["乌干达", "UG"], ["南非", "ZA"], ["赞比亚", "ZM"], ["津巴布韦", "ZW"]
+        ]
+      },
+      {
+        title: "北美与中美",
+        items: [
+          ["安提瓜和巴布达", "AG"], ["安圭拉", "AI"], ["巴巴多斯", "BB"], ["百慕大", "BM"],
+          ["巴哈马", "BS"], ["伯利兹", "BZ"], ["加拿大", "CA"], ["哥斯达黎加", "CR"],
+          ["多米尼克", "DM"], ["多米尼加共和国", "DO"], ["格林纳达", "GD"], ["危地马拉", "GT"],
+          ["洪都拉斯", "HN"], ["牙买加", "JM"], ["圣基茨和尼维斯", "KN"], ["开曼群岛", "KY"],
+          ["圣卢西亚", "LC"], ["蒙特塞拉特", "MS"], ["墨西哥", "MX"], ["尼加拉瓜", "NI"],
+          ["巴拿马", "PA"], ["萨尔瓦多", "SV"], ["特克斯和凯科斯群岛", "TC"], ["特立尼达和多巴哥", "TT"],
+          ["美国", "US"], ["圣文森特和格林纳丁斯", "VC"], ["英属维尔京群岛", "VG"]
+        ]
+      },
+      {
+        title: "南美",
+        items: [
+          ["阿根廷", "AR"], ["玻利维亚", "BO"], ["巴西", "BR"], ["智利", "CL"],
+          ["哥伦比亚", "CO"], ["厄瓜多尔", "EC"], ["圭亚那", "GY"], ["秘鲁", "PE"],
+          ["巴拉圭", "PY"], ["苏里南", "SR"], ["乌拉圭", "UY"], ["委内瑞拉", "VE"]
+        ]
+      },
+      {
+        title: "大洋洲",
+        items: [
+          ["澳大利亚", "AU"], ["斐济", "FJ"], ["密克罗尼西亚", "FM"], ["瑙鲁", "NR"],
+          ["新西兰", "NZ"], ["巴布亚新几内亚", "PG"], ["帕劳", "PW"], ["所罗门群岛", "SB"],
+          ["汤加", "TO"], ["瓦努阿图", "VU"], ["萨摩亚", "WS"]
+        ]
+      }
+    ];
+
+    const i18n = {
+      zh: {
+        brandCopy: "Apple 广告、DSP、KOL 与 GEO 工具。",
+        searchPlaceholder: "搜索国家、地区或代码，例如 日本、Hong Kong、JP、HK",
+        emptyState: "没有找到匹配地区。",
+        sectionTitles: {
+          "热门地区": "热门地区",
+          "亚洲与中东": "亚洲与中东",
+          "欧洲": "欧洲",
+          "非洲": "非洲",
+          "北美与中美": "北美与中美",
+          "南美": "南美",
+          "大洋洲": "大洋洲"
+        }
+      },
+      en: {
+        brandCopy: "AI tools for Apple ads, DSP, KOL, and GEO.",
+        searchPlaceholder: "Search country, region or code, e.g. Japan, Hong Kong, JP, HK",
+        emptyState: "No matching region found.",
+        sectionTitles: {
+          "热门地区": "Popular",
+          "亚洲与中东": "Asia & Middle East",
+          "欧洲": "Europe",
+          "非洲": "Africa",
+          "北美与中美": "North & Central America",
+          "南美": "South America",
+          "大洋洲": "Oceania"
+        }
+      }
+    };
+
+    const regionNameOverrides = {
+      en: {
+        CN: "China",
+        HK: "Hong Kong SAR, China",
+        MO: "Macao SAR, China",
+        TW: "Taiwan, China"
+      }
+    };
+
+    const storefrontByCode = {
+      CN: "143465",
+      US: "143441",
+      JP: "143462",
+      KR: "143466",
+      TW: "143470",
+      HK: "143463",
+      AE: "143481",
+      OM: "143562",
+      AZ: "143568",
+      PK: "143477",
+      BH: "143559",
+      BT: "143577",
+      PH: "143474",
+      KZ: "143517",
+      KG: "143586",
+      KH: "143579",
+      QA: "143498",
+      KW: "143493",
+      LA: "143587",
+      LB: "143497",
+      MY: "143473",
+      MN: "143592",
+      NP: "143484",
+      SA: "143479",
+      LK: "143486",
+      TJ: "143603",
+      TH: "143475",
+      TR: "143480",
+      TM: "143604",
+      BN: "143560",
+      UZ: "143566",
+      IQ: "143516",
+      SG: "143464",
+      AM: "143524",
+      YE: "143571",
+      IL: "143491",
+      IN: "143467",
+      ID: "143476",
+      JO: "143528",
+      VN: "143471",
+      MO: "143515",
+      AL: "143575",
+      IE: "143449",
+      EE: "143518",
+      AT: "143445",
+      BY: "143565",
+      BG: "143526",
+      MK: "143530",
+      BE: "143446",
+      IS: "143558",
+      PL: "143478",
+      DK: "143458",
+      DE: "143443",
+      RU: "143469",
+      FR: "143442",
+      FI: "143447",
+      NL: "143452",
+      CZ: "143489",
+      HR: "143494",
+      LV: "143519",
+      LT: "143520",
+      LU: "143451",
+      RO: "143487",
+      MT: "143521",
+      MD: "143523",
+      NO: "143457",
+      PT: "143453",
+      SE: "143456",
+      CH: "143459",
+      SL: "143600",
+      SK: "143496",
+      SI: "143499",
+      UA: "143492",
+      ES: "143454",
+      GR: "143448",
+      HU: "143482",
+      IT: "143450",
+      GB: "143444",
+      AI: "143538",
+      AG: "143540",
+      BB: "143541",
+      BS: "143539",
+      PA: "143485",
+      BM: "143542",
+      BZ: "143555",
+      DO: "143508",
+      DM: "143545",
+      CR: "143495",
+      GD: "143546",
+      HN: "143510",
+      CA: "143455",
+      KY: "143544",
+      MS: "143547",
+      MX: "143468",
+      NI: "143512",
+      SV: "143506",
+      KN: "143548",
+      LC: "143549",
+      VC: "143550",
+      TC: "143552",
+      TT: "143551",
+      GT: "143504",
+      JM: "143511",
+      VG: "143543",
+      AR: "143505",
+      PY: "143513",
+      BR: "143503",
+      BO: "143556",
+      EC: "143509",
+      CO: "143501",
+      GY: "143553",
+      PE: "143507",
+      SR: "143554",
+      VE: "143502",
+      UY: "143514",
+      CL: "143483",
+      AU: "143460",
+      PG: "143597",
+      FJ: "143583",
+      FM: "143591",
+      PW: "143595",
+      SB: "143601",
+      NZ: "143461",
+      DZ: "143563",
+      EG: "143516",
+      AO: "143564",
+      BJ: "143576",
+      BW: "143525",
+      BF: "143578",
+      CV: "143580",
+      GM: "143584",
+      CG: "143582",
+      GW: "143585",
+      GH: "143573",
+      ZW: "143605",
+      KE: "143529",
+      LR: "143588",
+      MG: "143531",
+      MW: "143589",
+      ML: "143532",
+      MU: "143533",
+      MR: "143590",
+      MZ: "143593",
+      NA: "143594",
+      ZA: "143472",
+      NE: "143534",
+      NG: "143561",
+      SN: "143535",
+      CY: "143557",
+      SC: "143599",
+      ST: "143598",
+      SZ: "143602",
+      TZ: "143572",
+      TN: "143536",
+      UG: "143537",
+      TD: "143581",
+      // Additional storefronts to fill the reference page gaps.
+      // Apple does not expose dedicated storefront ids in public lists for some of these regions,
+      // so the five marked below use the closest available storefront as a best-effort fallback.
+      BD: "143490",
+      CD: "143613",
+      CF: "143574",
+      CI: "143527",
+      CM: "143574",
+      ET: "143529",
+      GA: "143614",
+      GE: "143615",
+      GN: "143527",
+      LI: "143522",
+      MA: "143620",
+      MC: "143442",
+      ME: "143619",
+      MM: "143570",
+      MV: "143488",
+      NR: "143606",
+      RS: "143500",
+      RW: "143621",
+      TO: "143608",
+      VU: "143609",
+      WS: "143461",
+      XK: "143624",
+      LY: "143567",
+      ZM: "143622"
+    };
+
+    const sectionsRoot = document.getElementById("sections");
+    const emptyState = document.getElementById("emptyState");
+    const searchInput = document.getElementById("searchInput");
+    const i18nNodes = document.querySelectorAll("[data-i18n]");
+    const placeholderNodes = document.querySelectorAll("[data-i18n-placeholder]");
+    const languageButtons = document.querySelectorAll("[data-lang-option]");
+    const englishDisplayNames = window.Intl && Intl.DisplayNames
+      ? new Intl.DisplayNames(["en"], { type: "region" })
+      : null;
+    const englishNameCache = {};
+    let currentLanguage = getInitialLanguage();
+
+    function normalize(text) {
+      return text.trim().toLowerCase();
+    }
+
+    function getInitialLanguage() {
+      try {
+        return localStorage.getItem("appStoreSwitcherLanguage") || "zh";
+      } catch (error) {
+        return "zh";
+      }
+    }
+
+    function saveLanguage(language) {
+      try {
+        localStorage.setItem("appStoreSwitcherLanguage", language);
+      } catch (error) {
+        return;
+      }
+    }
+
+    function createRegionUrl(code) {
+      const storefrontId = storefrontByCode[code];
+      if (!storefrontId) {
+        return "https://apps.apple.com/" + code.toLowerCase() + "/";
+      }
+
+      const cc = code.toLowerCase();
+      return "https://itunes.apple.com/WebObjects/MZStore.woa/wa/resetAndRedirect?dsf=" + storefrontId + "&mt=8&url=/WebObjects/MZStore.woa/wa/viewSoftware?mt=8&id=1108187390&cc=" + cc + "&urlDesc=";
+    }
+
+    function getEnglishRegionName(zhName, code) {
+      if (regionNameOverrides.en[code]) return regionNameOverrides.en[code];
+      if (!englishNameCache[code]) {
+        englishNameCache[code] = englishDisplayNames ? englishDisplayNames.of(code) : zhName;
+      }
+      return englishNameCache[code] || zhName;
+    }
+
+    function getDisplayRegionName(zhName, code) {
+      return currentLanguage === "en" ? getEnglishRegionName(zhName, code) : zhName;
+    }
+
+    function updateStaticText() {
+      const dictionary = i18n[currentLanguage];
+      document.documentElement.lang = currentLanguage === "en" ? "en" : "zh-CN";
+
+      i18nNodes.forEach((node) => {
+        node.textContent = dictionary[node.dataset.i18n];
+      });
+
+      placeholderNodes.forEach((node) => {
+        node.placeholder = dictionary[node.dataset.i18nPlaceholder];
+      });
+
+      languageButtons.forEach((button) => {
+        const isActive = button.dataset.langOption === currentLanguage;
+        button.classList.toggle("is-active", isActive);
+        button.setAttribute("aria-pressed", String(isActive));
+      });
+    }
+
+    function renderSections(keyword) {
+      sectionsRoot.innerHTML = "";
+      let visibleCount = 0;
+
+      sectionData.forEach((section) => {
+        const matches = section.items.filter(([name, code]) => {
+          if (!keyword) return true;
+          return normalize([name, getEnglishRegionName(name, code), code].join(" ")).includes(keyword);
+        });
+
+        if (!matches.length) return;
+        visibleCount += matches.length;
+
+        const sectionNode = document.createElement("section");
+        sectionNode.className = "section";
+
+        const title = document.createElement("h3");
+        title.className = "section-title";
+        title.textContent = i18n[currentLanguage].sectionTitles[section.title];
+
+        const grid = document.createElement("div");
+        grid.className = "grid";
+
+        matches.forEach(([name, code]) => {
+          const link = document.createElement("a");
+          link.className = "region-link";
+          link.href = createRegionUrl(code);
+          link.textContent = getDisplayRegionName(name, code) + " " + code;
+          grid.appendChild(link);
+        });
+
+        sectionNode.appendChild(title);
+        sectionNode.appendChild(grid);
+        sectionsRoot.appendChild(sectionNode);
+      });
+
+      emptyState.style.display = visibleCount ? "none" : "block";
+    }
+
+    searchInput.addEventListener("input", () => {
+      renderSections(normalize(searchInput.value));
+    });
+
+    languageButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        currentLanguage = button.dataset.langOption;
+        saveLanguage(currentLanguage);
+        updateStaticText();
+        renderSections(normalize(searchInput.value));
+      });
+    });
+
+    updateStaticText();
+    renderSections("");
+  </script>
+</body>
+</html>
